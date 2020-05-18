@@ -8,14 +8,14 @@
     <data>
         <variable
             name="viewmodel"
-            type="com.example.meditation.MainViewModel" />
+            type="com.example.meditation.viewmodel.MainViewModel" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/meditation_screen"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="MainFragment">
+        tools:context=".view.main.MainFragment">
 
         <LinearLayout
             android:id="@+id/linearLayoutIcon"
@@ -130,7 +130,8 @@
             app:layout_constraintBottom_toTopOf="@+id/volumeSeekBar"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/txtMsgLowerLarge" />
+            app:layout_constraintTop_toBottomOf="@+id/txtMsgLowerLarge"
+            android:onClick="@{() -> viewmodel.changeStatus()}"/>
 
         <ImageButton
             android:id="@+id/btnFinish"

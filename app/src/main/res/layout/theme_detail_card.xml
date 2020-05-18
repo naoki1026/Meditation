@@ -20,12 +20,12 @@
             android:orientation="vertical">
 
             <ImageView
-                android:id="@+id/img"
+                android:id="@+id/imgTheme"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
 
             <TextView
-                android:id="@+id/textView"
+                android:id="@+id/txtTheme"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="TextView"
