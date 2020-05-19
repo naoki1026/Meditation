@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.SeekBar
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.viewModels
@@ -42,7 +43,6 @@ class MainFragment : Fragment() {
         return view
 //        return inflater.inflate(R.layout.fragment_main, container, false)
     }
-
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
         viewModel = ViewModelProviders.of(requireActivity()).get(MainViewModel::class.java)
@@ -54,28 +54,24 @@ class MainFragment : Fragment() {
 
         observeViewModel()
     }
-
     private fun observeViewModel() {
         viewModel.playStatus.observe(viewLifecycleOwner, Observer {status ->
             updateUi(status!!)
             when(status) {
                 PlayStatus.BEFORE_START -> {
-
                 }
                 PlayStatus.ON_START  -> {
                     viewModel.countDownBeforeStart()
-
                 }
                 PlayStatus.RUNNING -> {
                     viewModel.startMeditation()
-
-
                 }
                 PlayStatus.PAUSE -> {
+                    viewModel.pauseMeditation()
 
                 }
                 PlayStatus.END -> {
-
+                    viewModel.finishMeditation()
                 }
             }
         })
@@ -83,7 +79,6 @@ class MainFragment : Fragment() {
             loadBackgroundImage(this, themePicResId, meditation_screen)
         })
     }
-
     private fun updateUi(status: Int) {
         when(status) {
             PlayStatus.BEFORE_START -> {
@@ -102,7 +97,6 @@ class MainFragment : Fragment() {
                     btnFinish.visibility = View.INVISIBLE
                     txtShowMenu.visibility = View.VISIBLE
                 }
-
             }
             PlayStatus.RUNNING -> {
                 binding.apply {
@@ -113,19 +107,25 @@ class MainFragment : Fragment() {
                     btnFinish.visibility = View.INVISIBLE
                     txtShowMenu.visibility = View.VISIBLE
                 }
-
             }
             PlayStatus.PAUSE -> {
-
+                binding.apply {
+                    btnPlay.apply {
+                        visibility = View.VISIBLE
+                        setBackgroundResource(R.drawable.button_play)
+                    }
+                    btnFinish.apply {
+                        visibility = View.VISIBLE
+                        setBackgroundResource(R.drawable.button_finish)
+                    }
+                    txtShowMenu.visibility = View.VISIBLE
+                }
             }
             PlayStatus.END -> {
 
             }
-
         }
-
     }
-
     private fun loadBackgroundImage(mainFragment: MainFragment, themePicResId: Int?, meditationScreen: ConstraintLayout?) {
         Glide.with(mainFragment).load(themePicResId).into(object : SimpleTarget<Drawable>(){
             override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {

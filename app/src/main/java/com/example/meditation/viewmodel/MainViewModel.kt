@@ -26,9 +26,13 @@ class MainViewModel (val context: Application): AndroidViewModel(context)  {
     var displayTimeSeconds = MutableLiveData<String>()
 
     var playStatus = MutableLiveData<Int>()
+    var volume = MutableLiveData<Int>()
+
 
     private val userSettingsRepository = UserSettingRepository()
     private lateinit var userSettings: UserSettings
+    private var timerMeditation : Timer? = null
+
 
     //呼吸時間
     private val inhaleInterval = 4
@@ -62,11 +66,6 @@ class MainViewModel (val context: Application): AndroidViewModel(context)  {
     fun setTime(selectedItemId: Int) {
         remainedTimeSeconds.value = userSettingsRepository.setTime(selectedItemId) * 60
         displayTimeSeconds.value = changeTimeFormat(remainedTimeSeconds.value!!)
-
-        println("value" + context.getString(R.string.inhale))
-        println("value2" + inhaleInterval.toString())
-
-
     }
 
     fun setTheme(themeData: ThemeData) {
@@ -109,6 +108,44 @@ class MainViewModel (val context: Application): AndroidViewModel(context)  {
         displayTimeSeconds.value = changeTimeFormat(remainedTimeSeconds.value!!)
         msgUpperSmall.value = context.getString(R.string.inhale)
         msgLowerLarge.value = inhaleInterval.toString()
+
+        clockMeditation()
+    }
+
+    private fun clockMeditation() {
+
+        var timeElapsed = 0
+
+        timerMeditation = Timer()
+        timerMeditation?.schedule(1000, 1000){
+            val tempTime = remainedTimeSeconds.value!! - 1
+            remainedTimeSeconds.postValue(tempTime)
+            displayTimeSeconds.postValue(changeTimeFormat(tempTime))
+            if(remainedTimeSeconds.value!! <= 1){
+                msgUpperSmall.postValue("")
+                msgLowerLarge.postValue(context.resources.getString(R.string.meiso_finish))
+                playStatus.postValue(PlayStatus.END)
+                cancelTimer()
+                return@schedule
+            }
+            timeElapsed = if(timeElapsed >= totalInterval - 1) 0 else timeElapsed + 1
+            setDisplayText(timeElapsed)
+        }
+    }
+    private fun setDisplayText(timeElapsed: Int) {
+        if(timeElapsed >= 0 && timeElapsed < inhaleInterval) {
+            msgUpperSmall.postValue(context.resources.getString(R.string.inhale))
+            msgLowerLarge.postValue((inhaleInterval - timeElapsed).toString())
+        } else if (timeElapsed < inhaleInterval) {
+            msgUpperSmall.postValue(context.resources.getString(R.string.hold))
+            msgLowerLarge.postValue((inhaleInterval + holdInterval - timeElapsed).toString())
+        } else {
+            msgUpperSmall.postValue(context.resources.getString(R.string.exhale))
+            msgLowerLarge.postValue((totalInterval - timeElapsed).toString())
+        }
+    }
+    private fun cancelTimer() {
+        timerMeditation?.cancel()
     }
 
     private fun adjustRemainedTime(remainedTime: Int?, totalInterval: Int): Int? {
@@ -141,7 +178,6 @@ class MainViewModel (val context: Application): AndroidViewModel(context)  {
             else -> 0
         }
     }
-
     private fun setHoldInterval(): Int {
         val levelId = userSettingsRepository.loadUserSettings().levelId
         return when(levelId) {
@@ -151,5 +187,27 @@ class MainViewModel (val context: Application): AndroidViewModel(context)  {
             3 -> 16
             else -> 0
         }
+    }
+
+    fun pauseMeditation() {
+        cancelTimer()
+    }
+
+    fun finishMeditation(){
+        cancelTimer()
+        playStatus.value = PlayStatus.BEFORE_START
+        remainedTimeSeconds.value = userSettingsRepository.loadUserSettings().time * 60
+        displayTimeSeconds.value = changeTimeFormat(remainedTimeSeconds.value!!)
+        msgUpperSmall.value = ""
+        msgLowerLarge.value = context.resources.getString(R.string.meiso_finish)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        cancelTimer()
+    }
+
+    fun setVolume(progress: Int) {
+        volume.value = progress
     }
 }

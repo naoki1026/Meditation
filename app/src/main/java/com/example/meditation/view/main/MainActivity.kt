@@ -1,6 +1,11 @@
 package com.example.meditation.view.main
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
 import android.os.Bundle
+import android.os.IBinder
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -8,6 +13,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelProviders
 import com.example.meditation.R
+import com.example.meditation.service.MusicService
+import com.example.meditation.service.MusicServiceHelper
 import com.example.meditation.util.FragmentTag
 import com.example.meditation.util.PlayStatus
 import com.example.meditation.view.dialog.ThemeSelectDialog
@@ -20,6 +27,8 @@ import net.minpro.meditation.view.dialog.LevelSelectDialog
 class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel : MainViewModel
+    private var musicServiceHelper : MusicServiceHelper? = null
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.AppTheme)
@@ -55,6 +64,14 @@ class MainActivity : AppCompatActivity() {
                 else -> {false}
             }
         }
+        musicServiceHelper = MusicServiceHelper(this)
+        musicServiceHelper?.bindService()
+    }
+
+    override fun onBackPressed() {
+        super.onBackPressed()
+        musicServiceHelper?.stopBgm()
+        finish()
     }
 
     private fun observerViewModel() {
@@ -69,15 +86,24 @@ class MainActivity : AppCompatActivity() {
                 }
                 PlayStatus.RUNNING -> {
                     btmNav.visibility = View.INVISIBLE
+                    musicServiceHelper?.startBgm()
                 }
                 PlayStatus.PAUSE -> {
+                    musicServiceHelper?.stopBgm()
+                    btmNav.visibility = View.INVISIBLE
+
 
                 }
                 PlayStatus.END -> {
-
+                    musicServiceHelper?.stopBgm()
+                    musicServiceHelper?.ringFinalGong()
                 }
             }
-
         })
+
+        viewModel.volume.observe(this, Observer { volume ->
+            musicServiceHelper?.setVolume(volume)
+        })
+
     }
 }
