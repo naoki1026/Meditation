@@ -1,5 +1,6 @@
 package com.example.meditation.view.main
 
+import android.app.Notification
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -16,6 +17,7 @@ import com.example.meditation.R
 import com.example.meditation.service.MusicService
 import com.example.meditation.service.MusicServiceHelper
 import com.example.meditation.util.FragmentTag
+import com.example.meditation.util.NotificationHelper
 import com.example.meditation.util.PlayStatus
 import com.example.meditation.view.dialog.ThemeSelectDialog
 import com.example.meditation.view.dialog.TimeSelectDialog
@@ -28,6 +30,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var viewModel : MainViewModel
     private var musicServiceHelper : MusicServiceHelper? = null
+    private var notificationHelper : NotificationHelper? = null
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -43,6 +46,9 @@ class MainActivity : AppCompatActivity() {
                 )
                 .commit()
         }
+        var notificationHelper = NotificationHelper(this)
+        notificationHelper.startNotification()
+
 
         viewModel = ViewModelProviders.of(this).get(MainViewModel::class.java)
         observerViewModel()
@@ -66,6 +72,23 @@ class MainActivity : AppCompatActivity() {
         }
         musicServiceHelper = MusicServiceHelper(this)
         musicServiceHelper?.bindService()
+        notificationHelper = NotificationHelper(this)
+
+    }
+
+    override fun onResume() {
+        super.onResume()
+        notificationHelper?.cancelNotification()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        notificationHelper?.startNotification()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        notificationHelper?.cancelNotification()
     }
 
     override fun onBackPressed() {
